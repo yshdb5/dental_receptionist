@@ -1,7 +1,8 @@
 # Mini Vocca Dental Assistant
 
-As asked, here is a real-time **Vocal AI Receptionist** designed specifically for dental clinics.  
+Real-time **Vocal AI Receptionist** designed specifically for dental clinics.  
 It uses advanced speech recognition, conversational AI, and calendar integration to interact with patients and help them manage their appointments.
+(Disclaimer: greatly inspired by pipecat's [Patient-intake chatbot](https://github.com/pipecat-ai/pipecat/tree/main/examples/patient-intake) and  [ Simple chatbot](https://github.com/pipecat-ai/pipecat/tree/main/examples/simple_chatbot))
 
 ---
 
