@@ -1,5 +1,6 @@
 #This project's specific files
 credentials.json
+server/chroma_db
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

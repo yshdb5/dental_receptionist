@@ -31,6 +31,7 @@ from pipecat.transports.services.daily import DailyParams, DailyTransport, Daily
 
 from cal.google_calendar import GoogleCalendarService
 from processors.appointment import AppointmentProcessor
+from processors.info import InfoProcessor
 
 load_dotenv(override=True)
 logger.remove(0)
@@ -144,15 +145,17 @@ async def main():
         context = OpenAILLMContext(messages)
         context_aggregator = llm.create_context_aggregator(context)
 
-
         # Create the appointment processor for handling appointment requests and bookings
         appointment_processor = AppointmentProcessor(calendar_service, context, context_aggregator)
         ta = TalkingAnimation()
         rtvi = RTVIProcessor(config=RTVIConfig(config=[]))
 
-        # Register the appointment processor's methods with the LLM
+        info_processor = InfoProcessor(context, context_aggregator)
+
+        # Register the processors' methods with the LLM
         llm.register_function("checkAvailability", appointment_processor.handle_check_availability)
         llm.register_function("bookAppointment", appointment_processor.handle_book_appointment)
+        llm.register_function("getInfo", info_processor.handle_get_info)
 
         pipeline = Pipeline([
             transport.input(),
@@ -160,6 +163,7 @@ async def main():
             context_aggregator.user(),
             llm,
             appointment_processor,
+            info_processor,
             tts,
             ta,
             transport.output(),
@@ -177,6 +181,7 @@ async def main():
         )
 
         appointment_processor.set_task(task)
+        info_processor.set_task(task)
 
         await task.queue_frame(quiet_frame)
 
