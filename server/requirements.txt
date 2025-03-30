@@ -1,0 +1,10 @@
+python-dotenv
+fastapi[all]
+uvicorn
+pipecat-ai[daily,cartesia,openai,silero]
+aiohttp
+pillow
+loguru
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
