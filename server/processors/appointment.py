@@ -1,5 +1,4 @@
 import datetime
-import re
 from typing import Dict, List, Any, Optional
 
 from loguru import logger
@@ -20,7 +19,8 @@ class AppointmentProcessor(FrameProcessor):
         self.task: Optional[PipelineTask] = None
 
         # Set up LLM tools which are the functions that can be called from the LLM
-        self.llm_context.set_tools([
+        current_tools = getattr(self.llm_context, "tools", []) or []
+        self.llm_context.set_tools(current_tools + [
             {
                 "type": "function",
                 "function": {

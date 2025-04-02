@@ -130,6 +130,8 @@ async def main():
             - Proposez les créneaux disponibles de façon simple, maximum 3 créneaux
             - Recueillez le nom, le téléphone et, si possible, l'email
             - Utilisez bookAppointment() pour confirmer le rendez-vous
+            
+            Pour les informations sur le cabinet et ses services, utilisez getInfo().
 
             Rappels :
             - Politique d'annulation : prévenir 24h à l'avance

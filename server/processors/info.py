@@ -25,13 +25,14 @@ class InfoProcessor(FrameProcessor):
         self.task: Optional[PipelineTask] = None
         self.context_aggregator = context_aggregator
 
-
-        self.llm_context.set_tools([
+        # Set up LLM tools which are the functions that can be called from the LLM
+        current_tools = getattr(self.llm_context, "tools", []) or []
+        self.llm_context.set_tools(current_tools + [
             {
                 "type": "function",
                 "function": {
                     "name": "getInfo",
-                    "description": "Fournit une information spécifique sur les services du cabinet.",
+                    "description": "Fournit une information spécifique sur le cabinet et ses services.",
                     "parameters": {
                         "type": "object",
                         "properties": {
