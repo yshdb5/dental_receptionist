@@ -1,7 +1,8 @@
 # Mini Vocca Dental Assistant
 
-As asked, here is a real-time **Vocal AI Receptionist** designed specifically for dental clinics.  
+Real-time **Vocal AI Receptionist** designed specifically for dental clinics.  
 It uses advanced speech recognition, conversational AI, and calendar integration to interact with patients and help them manage their appointments.
+(Disclaimer: greatly inspired by pipecat's [Patient-intake chatbot](https://github.com/pipecat-ai/pipecat/tree/main/examples/patient-intake) and  [ Simple chatbot](https://github.com/pipecat-ai/pipecat/tree/main/examples/simple-chatbot))
 
 ---
 
@@ -44,18 +45,18 @@ It can also answer questions like:
 ## Project structure
 ```
 mini_vocca/
-├── server/                           # Core application logic
+├── server/                          
 │   ├── assets/                       # Avatar animation images
-│   ├── cal/                          # Google Calendar integration
-│   │   └── google_calendar.py
-│   ├── chroma_db/                    # Chroma vector database for knowledge base
-│   ├── processors/                   # Custom processors for appointments & info
-│   │   ├── appointment.py
-│   │   └── info.py
+│   ├── cal/                          
+│   │   └── google_calendar.py        # Google Calendar integration
+│   ├── chroma_db/                    # Chroma vector store for the RAG
+│   ├── processors/                   
+│   │   ├── appointment.py            # Appointment logic
+│   │   └── info.py                   # RAG logic
 │   ├── bot-openai.py                 # Main pipeline: speech, LLM, TTS & processors
 │   ├── runner.py                     # Pipeline runner setup
 │   └── server.py                     # FastAPI server to expose bot endpoints
-├── info.md                           # Knowledge base content
+├── info.md                           # Knowledge database
 ├── .env.example                      # Example environment variables
 ├── requirements.txt                  # Project dependencies
 ├── README.MD                         # Project documentation
