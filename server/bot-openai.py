@@ -133,7 +133,8 @@ async def main():
 
             Rappels :
             - Politique d'annulation : prévenir 24h à l'avance
-            - Horaires : lundi à vendredi, de 9h00 à 17h00. Ne dites jamais "nine H" ou "seventeen H", écrivez toujours "9h00" et "17h00".
+            - Horaires : lundi à vendredi, de 9h00 à 17h00.
+            - Pour un horaire comme "9h00", dites "neuf heures". Pour un horaire comme "17h30", dites "dix-sept heures trente".
             - Si vous utilisez des heures ou des dates, utilisez TOUJOURS le format français : "9h00", "17h00", "1er avril". Ne jamais utiliser d'anglais.
             - Urgences : 01 23 45 67 89
 

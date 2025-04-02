@@ -44,7 +44,8 @@ class AppointmentProcessor(FrameProcessor):
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "timeSlot": {"type": "string"},
+                            "start": {"type": "integer", "description": "Timestamp de début"},
+                            "end": {"type": "integer", "description": "Timestamp de fin"},
                             "patientInfo": {
                                 "type": "object",
                                 "properties": {
@@ -55,7 +56,7 @@ class AppointmentProcessor(FrameProcessor):
                                 "required": ["name", "phone"]
                             }
                         },
-                        "required": ["timeSlot", "patientInfo"]
+                        "required": ["start", "end", "patientInfo"]
                     }
                 }
             }
@@ -76,13 +77,13 @@ class AppointmentProcessor(FrameProcessor):
         await self._auto_continue()
 
     async def handle_book_appointment(self, function_name, tool_call_id, args, llm, context, result_callback):
-        time_slot = args["timeSlot"]
+        start = args["start"]
+        end = args["end"]
         patient_info = args["patientInfo"]
-        await self._handle_book_appointment(time_slot, patient_info)
+        await self._handle_book_appointment(start, end, patient_info)
         await result_callback(None)
         await self._auto_continue()
 
-    # Allow the conversation to continue automatically after a call to a tool function
     async def _auto_continue(self):
         if self.task:
             await self.task.queue_frames([self.context_aggregator.user().get_context_frame()])
@@ -90,19 +91,30 @@ class AppointmentProcessor(FrameProcessor):
     async def _handle_check_availability(self, date_str: str, service_type: str):
         slots = await self.process_appointment_request(date_str, service_type)
         if slots:
-            slots_text = "\n".join([f"- {slot['start']} à {slot['end']}" for slot in slots[:3]])
-            response = f"Voici les créneaux disponibles pour le {date_str} ({service_type}):\n{slots_text}. Lequel souhaitez-vous ?"
+            slots_text = ""
+            for slot in slots[:3]:
+                start_ts = int(slot['start_datetime'].timestamp())
+                end_ts = int(slot['end_datetime'].timestamp())
+                slots_text += (
+                    f"- De {slot['start']} à {slot['end']} (start: {start_ts}, end: {end_ts})\n"
+                )
+            response = (
+                f"Voici les créneaux disponibles pour le {date_str} ({service_type}):\n"
+                f"{slots_text.strip()}\n"
+                f"Lequel souhaitez-vous ?"
+            )
         else:
             response = f"Je suis désolée, aucun créneau disponible le {date_str}. Voulez-vous essayer une autre date ?"
 
         self.llm_context.add_message({"role": "system", "content": response})
 
-    async def _handle_book_appointment(self, time_slot: str, patient_info: Dict[str, str]):
-        appointment = await self.book_appointment(time_slot, patient_info)
+    async def _handle_book_appointment(self, start: int, end: int, patient_info: Dict[str, str]):
+        appointment = await self.book_appointment(start, end, patient_info)
 
         if appointment:
             response = (
-                f"Parfait ! Rendez-vous confirmé pour {appointment['service']} le {appointment['start']} au nom de {appointment['patient']}.\n"
+                f"Parfait ! Rendez-vous confirmé pour {appointment['service']} "
+                f"le {appointment['start']} au nom de {appointment['patient']}.\n"
                 f"Vous recevrez une confirmation par email."
             )
         else:
@@ -128,19 +140,25 @@ class AppointmentProcessor(FrameProcessor):
             logger.error(f"Erreur lors de la recherche des créneaux : {e}")
             return []
 
-    async def book_appointment(self, time_slot: str, patient_info: Dict[str, str]) -> Optional[Dict[str, Any]]:
+    async def book_appointment(self, start: int, end: int, patient_info: Dict[str, str]) -> Optional[Dict[str, Any]]:
         try:
-            date = self.appointment_state.get('date')
             service_type = self.appointment_state.get('service_type')
             slots = self.appointment_state.get('available_slots', [])
 
-            if not date or not service_type or not slots:
+            if not service_type or not slots:
                 logger.error("État de rendez-vous incomplet. Impossible de réserver.")
                 return None
 
-            selected_slot = self._match_time_slot(time_slot, slots)
+            # Matching souple : tolérance de 60 secondes
+            selected_slot = next(
+                (slot for slot in slots
+                 if abs(int(slot['start_datetime'].timestamp()) - start) < 60
+                 and abs(int(slot['end_datetime'].timestamp()) - end) < 60),
+                None
+            )
+
             if not selected_slot:
-                logger.error(f"Créneau {time_slot} introuvable.")
+                logger.error(f"Créneau introuvable pour {start}-{end}.")
                 return None
 
             appointment = await self.calendar_service.create_appointment(
@@ -165,15 +183,6 @@ class AppointmentProcessor(FrameProcessor):
         except Exception as e:
             logger.error(f"Erreur lors de la réservation : {e}")
             return None
-
-    def _match_time_slot(self, user_input: str, slots: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        for slot in slots:
-            if re.search(slot['start'], user_input):
-                return slot
-        for slot in slots:
-            if slot['start'].split(':')[0] in user_input:
-                return slot
-        return None
 
     def _parse_date(self, date_str: str) -> datetime.date:
         for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%d %B %Y'):
