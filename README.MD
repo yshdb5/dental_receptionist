@@ -1,4 +1,4 @@
-# Mini Vocca Dental Assistant
+# AI Dental Receptionist
 
 Real-time **Vocal AI Receptionist** designed specifically for dental clinics.  
 It uses advanced speech recognition, conversational AI, and calendar integration to interact with patients and help them manage their appointments.
